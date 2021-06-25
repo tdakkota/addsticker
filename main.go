@@ -8,11 +8,12 @@ import (
 	"os/signal"
 	"path/filepath"
 
-	"github.com/gotd/td/telegram"
-	"github.com/gotd/td/tg"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 	"golang.org/x/xerrors"
+
+	"github.com/gotd/td/telegram"
+	"github.com/gotd/td/tg"
 )
 
 type ExitError struct {
