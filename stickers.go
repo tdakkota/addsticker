@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"io"
+	"regexp"
 	"sync"
 
 	"golang.org/x/xerrors"
@@ -15,13 +16,13 @@ import (
 type Stickers struct {
 	user     *tg.InputPeerUser
 	userMux  sync.Mutex
-	signalCh chan struct{}
+	signalCh chan *tg.Message
 	sender   *message.Sender
 }
 
 func StickerBot(client *telegram.Client, dispatcher tg.UpdateDispatcher) *Stickers {
 	s := &Stickers{
-		signalCh: make(chan struct{}),
+		signalCh: make(chan *tg.Message),
 		sender:   message.NewSender(client.API()),
 	}
 	dispatcher.OnNewMessage(func(ctx context.Context, e tg.Entities, update *tg.UpdateNewMessage) error {
@@ -40,7 +41,7 @@ func StickerBot(client *telegram.Client, dispatcher tg.UpdateDispatcher) *Sticke
 		}
 
 		select {
-		case s.signalCh <- struct{}{}:
+		case s.signalCh <- msg:
 		case <-ctx.Done():
 			return ctx.Err()
 		}
@@ -97,12 +98,12 @@ func (s *Stickers) Add(ctx context.Context, stickerPack, emoji string, sticker i
 	return nil
 }
 
-func (s *Stickers) await(ctx context.Context) error {
+func (s *Stickers) await(ctx context.Context) (*tg.Message, error) {
 	select {
-	case <-s.signalCh:
-		return nil
+	case msg := <-s.signalCh:
+		return msg, nil
 	case <-ctx.Done():
-		return ctx.Err()
+		return nil, ctx.Err()
 	}
 }
 
@@ -118,8 +119,37 @@ func (s *Stickers) send(ctx context.Context, texts ...string) error {
 			return xerrors.Errorf("send %q: %w", text, err)
 		}
 
-		if err := s.await(ctx); err != nil {
+		if _, err := s.await(ctx); err != nil {
 			return xerrors.Errorf("await %q: %w", text, err)
+		}
+	}
+	return nil
+}
+
+type expectation struct {
+	Text string
+	Exp  *regexp.Regexp
+}
+
+func (s *Stickers) expect(ctx context.Context, epxs ...expectation) error {
+	p, err := s.getStickers(ctx)
+	if err != nil {
+		return xerrors.Errorf("get Stickers peer: %w", err)
+	}
+
+	for _, e := range epxs {
+		_, err := s.sender.To(p).Text(ctx, e.Text)
+		if err != nil {
+			return xerrors.Errorf("send %q: %w", e.Text, err)
+		}
+
+		msg, err := s.await(ctx)
+		if err != nil {
+			return xerrors.Errorf("await %q: %w", e.Text, err)
+		}
+
+		if e.Exp != nil && e.Exp.MatchString(msg.Message) {
+			return xerrors.Errorf("unexpected response: %q", msg.Message)
 		}
 	}
 	return nil
@@ -136,7 +166,7 @@ func (s *Stickers) sendImage(ctx context.Context, file tg.InputFileClass) error 
 		return xerrors.Errorf("send image: %w", err)
 	}
 
-	if err := s.await(ctx); err != nil {
+	if _, err := s.await(ctx); err != nil {
 		return xerrors.Errorf("await image: %w", err)
 	}
 
