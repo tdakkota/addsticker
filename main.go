@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/joho/godotenv"
+	"go.uber.org/multierr"
 	"go.uber.org/zap"
 	"golang.org/x/xerrors"
 
@@ -84,12 +85,12 @@ func run(ctx context.Context) error {
 		return xerrors.Errorf("create client: %w", err)
 	}
 
-	return client.Run(ctx, func(ctx context.Context) error {
-		f, err := os.Open(imagePath)
+	return client.Run(ctx, func(ctx context.Context) (rErr error) {
+		f, err := os.Open(filepath.Clean(imagePath))
 		if err != nil {
 			return xerrors.Errorf("open sticker: %w", err)
 		}
-		defer f.Close()
+		defer multierr.AppendInvoke(&rErr, multierr.Close(f))
 
 		return StickerBot(client, dispatcher).Add(ctx, pack, alt, f)
 	})

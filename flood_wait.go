@@ -4,12 +4,14 @@ import (
 	"context"
 
 	"github.com/cenkalti/backoff/v4"
+
 	"github.com/gotd/td/bin"
 	"github.com/gotd/td/telegram"
 	"github.com/gotd/td/tg"
 	"github.com/gotd/td/tgerr"
 )
 
+//nolint:gochecknoglobals
 var backoffRetry telegram.MiddlewareFunc = func(next tg.Invoker) telegram.InvokeFunc {
 	return func(ctx context.Context, input bin.Encoder, output bin.Decoder) error {
 		return backoff.Retry(func() error {

@@ -5,6 +5,7 @@ import (
 	"io"
 	"sync"
 
+	"go.uber.org/zap"
 	"golang.org/x/xerrors"
 
 	"github.com/gotd/td/telegram"
@@ -17,12 +18,14 @@ type Stickers struct {
 	userMux  sync.Mutex
 	signalCh chan *tg.Message
 	sender   *message.Sender
+	log      *zap.Logger
 }
 
 func StickerBot(client *telegram.Client, dispatcher tg.UpdateDispatcher) *Stickers {
 	s := &Stickers{
 		signalCh: make(chan *tg.Message),
 		sender:   message.NewSender(client.API()),
+		log:      zap.NewNop(),
 	}
 	dispatcher.OnNewMessage(func(ctx context.Context, e tg.Entities, update *tg.UpdateNewMessage) error {
 		msg, ok := update.Message.(*tg.Message)
@@ -97,9 +100,11 @@ func (s *Stickers) Add(ctx context.Context, stickerPack, emoji string, sticker i
 	return nil
 }
 
+//nolint:unparam
 func (s *Stickers) await(ctx context.Context) (*tg.Message, error) {
 	select {
 	case msg := <-s.signalCh:
+		s.log.Info("Received message", zap.String("message", msg.Message))
 		return msg, nil
 	case <-ctx.Done():
 		return nil, ctx.Err()
@@ -117,6 +122,7 @@ func (s *Stickers) send(ctx context.Context, texts ...string) error {
 		if err != nil {
 			return xerrors.Errorf("send %q: %w", text, err)
 		}
+		s.log.Info("Sent message", zap.String("message", text))
 
 		if _, err := s.await(ctx); err != nil {
 			return xerrors.Errorf("await %q: %w", text, err)
