@@ -71,7 +71,9 @@ func run(ctx context.Context) error {
 	}
 
 	logger := zap.NewNop()
-	defer logger.Sync()
+	defer func() {
+		_ = logger.Sync()
+	}()
 
 	dispatcher := tg.NewUpdateDispatcher()
 	client, err := telegram.ClientFromEnvironment(telegram.Options{

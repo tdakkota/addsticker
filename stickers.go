@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"io"
-	"regexp"
 	"sync"
 
 	"golang.org/x/xerrors"
@@ -121,35 +120,6 @@ func (s *Stickers) send(ctx context.Context, texts ...string) error {
 
 		if _, err := s.await(ctx); err != nil {
 			return xerrors.Errorf("await %q: %w", text, err)
-		}
-	}
-	return nil
-}
-
-type expectation struct {
-	Text string
-	Exp  *regexp.Regexp
-}
-
-func (s *Stickers) expect(ctx context.Context, epxs ...expectation) error {
-	p, err := s.getStickers(ctx)
-	if err != nil {
-		return xerrors.Errorf("get Stickers peer: %w", err)
-	}
-
-	for _, e := range epxs {
-		_, err := s.sender.To(p).Text(ctx, e.Text)
-		if err != nil {
-			return xerrors.Errorf("send %q: %w", e.Text, err)
-		}
-
-		msg, err := s.await(ctx)
-		if err != nil {
-			return xerrors.Errorf("await %q: %w", e.Text, err)
-		}
-
-		if e.Exp != nil && e.Exp.MatchString(msg.Message) {
-			return xerrors.Errorf("unexpected response: %q", msg.Message)
 		}
 	}
 	return nil
