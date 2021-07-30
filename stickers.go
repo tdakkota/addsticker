@@ -38,7 +38,12 @@ func StickerBot(client *telegram.Client, dispatcher tg.UpdateDispatcher) *Sticke
 			return nil
 		}
 
-		if s.user == nil || s.user.UserID != peerID.UserID {
+		stickers, err := s.getStickers(ctx)
+		if err != nil {
+			return xerrors.Errorf("get Stickers: %w", err)
+		}
+
+		if stickers.UserID != peerID.UserID {
 			return nil
 		}
 
