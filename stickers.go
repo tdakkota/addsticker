@@ -13,14 +13,19 @@ import (
 	"github.com/gotd/td/tg"
 )
 
+// Stickers is a simple helper for interaction with @Stickers bot.
 type Stickers struct {
-	user     *tg.InputPeerUser
-	userMux  sync.Mutex
+	// Resolved @Stickers peer.
+	user    *tg.InputPeerUser
+	userMux sync.Mutex
+	// Message channel.
 	signalCh chan *tg.Message
-	sender   *message.Sender
-	log      *zap.Logger
+
+	sender *message.Sender
+	log    *zap.Logger
 }
 
+// StickerBot creates new Stickers and sets hooks to given dispatcher.
 func StickerBot(client *telegram.Client, dispatcher tg.UpdateDispatcher) *Stickers {
 	s := &Stickers{
 		signalCh: make(chan *tg.Message),
@@ -59,6 +64,7 @@ func StickerBot(client *telegram.Client, dispatcher tg.UpdateDispatcher) *Sticke
 	return s
 }
 
+// getStickers resolves @Stickers once.
 func (s *Stickers) getStickers(ctx context.Context) (*tg.InputPeerUser, error) {
 	s.userMux.Lock()
 	defer s.userMux.Unlock()
@@ -79,6 +85,7 @@ func (s *Stickers) getStickers(ctx context.Context) (*tg.InputPeerUser, error) {
 	return s.user, nil
 }
 
+// Add adds sticker to stickerPack using given emoji list and sticker.
 func (s *Stickers) Add(ctx context.Context, stickerPack, emoji string, sticker io.Reader) error {
 	p, err := s.getStickers(ctx)
 	if err != nil {
@@ -106,6 +113,7 @@ func (s *Stickers) Add(ctx context.Context, stickerPack, emoji string, sticker i
 }
 
 //nolint:unparam
+// await waits for answer from bot.
 func (s *Stickers) await(ctx context.Context) (*tg.Message, error) {
 	select {
 	case msg := <-s.signalCh:
@@ -116,6 +124,7 @@ func (s *Stickers) await(ctx context.Context) (*tg.Message, error) {
 	}
 }
 
+// send sends every text as new message and awaits result.
 func (s *Stickers) send(ctx context.Context, texts ...string) error {
 	p, err := s.getStickers(ctx)
 	if err != nil {
@@ -136,6 +145,7 @@ func (s *Stickers) send(ctx context.Context, texts ...string) error {
 	return nil
 }
 
+// sendImage sends image and awaits result.
 func (s *Stickers) sendImage(ctx context.Context, file tg.InputFileClass) error {
 	p, err := s.getStickers(ctx)
 	if err != nil {

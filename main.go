@@ -8,7 +8,6 @@ import (
 	"os/signal"
 	"path/filepath"
 
-	"github.com/joho/godotenv"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
 	"golang.org/x/xerrors"
@@ -16,43 +15,6 @@ import (
 	"github.com/gotd/td/telegram"
 	"github.com/gotd/td/tg"
 )
-
-type ExitError struct {
-	Msg  string
-	Code int
-}
-
-func (e *ExitError) Error() string {
-	return e.Msg
-}
-
-func tryLoadEnv() error {
-	tryOne := func(p string) (bool, error) {
-		_, err := os.Stat(p)
-		if err != nil {
-			if os.IsNotExist(err) {
-				return false, nil
-			}
-			return false, xerrors.Errorf("stat: %w", err)
-		}
-
-		return true, godotenv.Load(p)
-	}
-
-	load, err := tryOne(".tdenv")
-	if load || err != nil {
-		return err
-	}
-
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return xerrors.Errorf("get home: %w", err)
-	}
-	repl := filepath.Join(home, ".td", "tdrepl.env")
-
-	_, err = tryOne(repl)
-	return err
-}
 
 func run(ctx context.Context) error {
 	if err := tryLoadEnv(); err != nil {
