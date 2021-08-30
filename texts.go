@@ -2,8 +2,10 @@ package main
 
 import "regexp"
 
+//nolint:gochecknoglobals
 var responseMatchers = map[string]*regexp.Regexp{}
 
+//nolint:gochecknoinits
 func init() {
 	responseRegexps := map[string]string{
 		"addsticker":       "Choose the sticker pack you're interested in\\.",
