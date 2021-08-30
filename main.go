@@ -42,6 +42,10 @@ func run(ctx context.Context) error {
 	client, err := telegram.ClientFromEnvironment(telegram.Options{
 		UpdateHandler: dispatcher,
 		Middlewares:   []telegram.Middleware{backoffRetry},
+		Device: telegram.DeviceConfig{
+			SystemLangCode: "en-US",
+			LangCode:       "en",
+		},
 	})
 	if err != nil {
 		return xerrors.Errorf("create client: %w", err)
