@@ -152,7 +152,7 @@ func (s *Stickers) sendImage(ctx context.Context, file tg.InputFileClass) error 
 		return xerrors.Errorf("get Stickers peer: %w", err)
 	}
 
-	_, err = s.sender.To(p).Media(ctx, message.File(file).Filename("troll.png").MIME("image/png"))
+	_, err = s.sender.To(p).Media(ctx, message.File(file).Filename("sticker.png").MIME("image/png"))
 	if err != nil {
 		return xerrors.Errorf("send image: %w", err)
 	}
