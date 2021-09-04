@@ -58,7 +58,8 @@ func run(ctx context.Context) error {
 		}
 		defer multierr.AppendInvoke(&rErr, multierr.Close(f))
 
-		return StickerBot(client, dispatcher).Add(ctx, pack, alt, f)
+		return StickerBot(client, dispatcher, Options{Logger: logger.Named("stickerbot")}).
+			Add(ctx, pack, alt, f)
 	})
 }
 

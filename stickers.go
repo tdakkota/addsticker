@@ -26,11 +26,12 @@ type Stickers struct {
 }
 
 // StickerBot creates new Stickers and sets hooks to given dispatcher.
-func StickerBot(client *telegram.Client, dispatcher tg.UpdateDispatcher) *Stickers {
+func StickerBot(client *telegram.Client, dispatcher tg.UpdateDispatcher, opts Options) *Stickers {
+	opts.setDefaults()
 	s := &Stickers{
 		signalCh: make(chan *tg.Message),
 		sender:   message.NewSender(client.API()),
-		log:      zap.NewNop(),
+		log:      opts.Logger,
 	}
 	dispatcher.OnNewMessage(func(ctx context.Context, e tg.Entities, update *tg.UpdateNewMessage) error {
 		msg, ok := update.Message.(*tg.Message)
