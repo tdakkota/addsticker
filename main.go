@@ -23,10 +23,12 @@ func run(ctx context.Context) error {
 
 	var (
 		alt, imagePath, pack string
+		log bool
 	)
 	flag.StringVar(&alt, "emoji", "", "emoji to add")
 	flag.StringVar(&imagePath, "image", "", "image to add")
 	flag.StringVar(&pack, "pack", "wtfakkota2", "pack to add")
+	flag.BoolVar(&log, "log", false, "enable logging")
 	flag.Parse()
 
 	if alt == "" || imagePath == "" {
@@ -34,6 +36,13 @@ func run(ctx context.Context) error {
 	}
 
 	logger := zap.NewNop()
+	if log {
+		l, err := zap.NewDevelopment()
+		if err != nil {
+			return xerrors.Errorf("create logger: %w", err)
+		}
+		logger = l
+	}
 	defer func() {
 		_ = logger.Sync()
 	}()
