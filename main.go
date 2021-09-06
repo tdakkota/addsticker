@@ -23,7 +23,7 @@ func run(ctx context.Context) error {
 
 	var (
 		alt, imagePath, pack string
-		log bool
+		log                  bool
 	)
 	flag.StringVar(&alt, "emoji", "", "emoji to add")
 	flag.StringVar(&imagePath, "image", "", "image to add")
