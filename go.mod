@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/cenkalti/backoff/v4 v4.1.3
-	github.com/gotd/td v0.58.0
+	github.com/gotd/td v0.59.0
 	github.com/joho/godotenv v1.4.0
 	github.com/stretchr/testify v1.7.1
 	go.uber.org/multierr v1.8.0
