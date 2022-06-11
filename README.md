@@ -8,5 +8,5 @@ go install github.com/tdakkota/addsticker@latest
 
 ## Example
 ```
-addsticker -image "gorilla.png" -emoji "🦍" -pack "wtfakkota"
+addsticker -image "gorilla.png" -emoji "🦍" -pack "mypack"
 ```
