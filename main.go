@@ -8,9 +8,9 @@ import (
 	"os/signal"
 	"path/filepath"
 
+	"github.com/go-faster/errors"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
-	"golang.org/x/xerrors"
 
 	"github.com/gotd/td/telegram"
 	"github.com/gotd/td/tg"
@@ -18,7 +18,7 @@ import (
 
 func run(ctx context.Context) error {
 	if err := tryLoadEnv(); err != nil {
-		return xerrors.Errorf("load env: %w", err)
+		return errors.Wrap(err, "load env")
 	}
 
 	var (
@@ -32,14 +32,14 @@ func run(ctx context.Context) error {
 	flag.Parse()
 
 	if alt == "" || imagePath == "" {
-		return xerrors.New("emoji or image arg is empty")
+		return errors.New("emoji or image arg is empty")
 	}
 
 	logger := zap.NewNop()
 	if log {
 		l, err := zap.NewDevelopment()
 		if err != nil {
-			return xerrors.Errorf("create logger: %w", err)
+			return errors.Wrap(err, "create logger")
 		}
 		logger = l
 	}
@@ -57,13 +57,13 @@ func run(ctx context.Context) error {
 		},
 	})
 	if err != nil {
-		return xerrors.Errorf("create client: %w", err)
+		return errors.Wrap(err, "create client")
 	}
 
 	return client.Run(ctx, func(ctx context.Context) (rErr error) {
 		f, err := os.Open(filepath.Clean(imagePath))
 		if err != nil {
-			return xerrors.Errorf("open sticker: %w", err)
+			return errors.Wrap(err, "open sticker")
 		}
 		defer multierr.AppendInvoke(&rErr, multierr.Close(f))
 
@@ -79,8 +79,7 @@ func main() {
 	if err := run(ctx); err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 
-		var e *ExitError
-		if xerrors.As(err, &e) {
+		if e, ok := errors.Into[*ExitError](err); ok {
 			os.Exit(e.Code)
 		}
 

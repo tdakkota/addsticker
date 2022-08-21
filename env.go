@@ -4,8 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/go-faster/errors"
 	"github.com/joho/godotenv"
-	"golang.org/x/xerrors"
 )
 
 func tryLoadEnv() error {
@@ -15,7 +15,7 @@ func tryLoadEnv() error {
 			if os.IsNotExist(err) {
 				return false, nil
 			}
-			return false, xerrors.Errorf("stat: %w", err)
+			return false, errors.Wrap(err, "stat")
 		}
 
 		return true, godotenv.Load(p)
@@ -28,7 +28,7 @@ func tryLoadEnv() error {
 
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return xerrors.Errorf("get home: %w", err)
+		return errors.Wrap(err, "get home")
 	}
 	repl := filepath.Join(home, ".td", "tdrepl.env")
 

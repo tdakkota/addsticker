@@ -5,12 +5,11 @@ import (
 	"io"
 	"sync"
 
-	"go.uber.org/zap"
-	"golang.org/x/xerrors"
-
+	"github.com/go-faster/errors"
 	"github.com/gotd/td/telegram"
 	"github.com/gotd/td/telegram/message"
 	"github.com/gotd/td/tg"
+	"go.uber.org/zap"
 )
 
 // Stickers is a simple helper for interaction with @Stickers bot.
@@ -46,7 +45,7 @@ func StickerBot(client *telegram.Client, dispatcher tg.UpdateDispatcher, opts Op
 
 		stickers, err := s.getStickers(ctx)
 		if err != nil {
-			return xerrors.Errorf("get Stickers: %w", err)
+			return errors.Wrap(err, "get Stickers")
 		}
 
 		if stickers.UserID != peerID.UserID {
@@ -76,7 +75,7 @@ func (s *Stickers) getStickers(ctx context.Context) (*tg.InputPeerUser, error) {
 
 	u, err := s.sender.Resolve("@Stickers").AsInputUser(ctx)
 	if err != nil {
-		return nil, xerrors.Errorf("resolve: %w", err)
+		return nil, errors.Wrap(err, "resolve")
 	}
 	s.user = &tg.InputPeerUser{
 		UserID:     u.UserID,
@@ -90,31 +89,32 @@ func (s *Stickers) getStickers(ctx context.Context) (*tg.InputPeerUser, error) {
 func (s *Stickers) Add(ctx context.Context, stickerPack, emoji string, sticker io.Reader) error {
 	p, err := s.getStickers(ctx)
 	if err != nil {
-		return xerrors.Errorf("get Stickers peer: %w", err)
+		return errors.Wrap(err, "get Stickers peer")
 	}
 
 	file, err := s.sender.To(p).Upload(message.FromReader("file.png", sticker)).AsInputFile(ctx)
 	if err != nil {
-		return xerrors.Errorf("upload: %w", err)
+		return errors.Wrap(err, "upload")
 	}
 
 	if err := s.send(ctx, "/cancel", "/addsticker", stickerPack); err != nil {
-		return xerrors.Errorf("prepare: %w", err)
+		return errors.Wrap(err, "prepare")
 	}
 
 	if err := s.sendImage(ctx, file); err != nil {
-		return xerrors.Errorf("send sticker: %w", err)
+		return errors.Wrap(err, "send sticker")
 	}
 
 	if err := s.send(ctx, emoji, "/done"); err != nil {
-		return xerrors.Errorf("send emoji %q: %w", emoji, err)
+		return errors.Wrapf(err, "send emoji %q", emoji)
 	}
 
 	return nil
 }
 
-//nolint:unparam
 // await waits for answer from bot.
+//
+//nolint:unparam
 func (s *Stickers) await(ctx context.Context) (*tg.Message, error) {
 	select {
 	case msg := <-s.signalCh:
@@ -129,18 +129,18 @@ func (s *Stickers) await(ctx context.Context) (*tg.Message, error) {
 func (s *Stickers) send(ctx context.Context, texts ...string) error {
 	p, err := s.getStickers(ctx)
 	if err != nil {
-		return xerrors.Errorf("get Stickers peer: %w", err)
+		return errors.Wrap(err, "get Stickers peer")
 	}
 
 	for _, text := range texts {
 		_, err := s.sender.To(p).Text(ctx, text)
 		if err != nil {
-			return xerrors.Errorf("send %q: %w", text, err)
+			return errors.Wrapf(err, "send %q", text)
 		}
 		s.log.Info("Sent message", zap.String("message", text))
 
 		if _, err := s.await(ctx); err != nil {
-			return xerrors.Errorf("await %q: %w", text, err)
+			return errors.Wrapf(err, "await %q", text)
 		}
 	}
 	return nil
@@ -150,16 +150,16 @@ func (s *Stickers) send(ctx context.Context, texts ...string) error {
 func (s *Stickers) sendImage(ctx context.Context, file tg.InputFileClass) error {
 	p, err := s.getStickers(ctx)
 	if err != nil {
-		return xerrors.Errorf("get Stickers peer: %w", err)
+		return errors.Wrap(err, "get Stickers peer")
 	}
 
 	_, err = s.sender.To(p).Media(ctx, message.File(file).Filename("sticker.png").MIME("image/png"))
 	if err != nil {
-		return xerrors.Errorf("send image: %w", err)
+		return errors.Wrap(err, "send image")
 	}
 
 	if _, err := s.await(ctx); err != nil {
-		return xerrors.Errorf("await image: %w", err)
+		return errors.Wrap(err, "await image")
 	}
 
 	return nil
