@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/cenkalti/backoff/v4 v4.1.3
 	github.com/go-faster/errors v0.6.1
-	github.com/gotd/td v0.68.0
+	github.com/gotd/td v0.68.1
 	github.com/joho/godotenv v1.4.0
 	github.com/stretchr/testify v1.8.0
 	go.uber.org/multierr v1.8.0
