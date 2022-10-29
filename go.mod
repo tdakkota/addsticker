@@ -7,7 +7,7 @@ require (
 	github.com/go-faster/errors v0.6.1
 	github.com/gotd/td v0.69.1
 	github.com/joho/godotenv v1.4.0
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 	go.uber.org/multierr v1.8.0
 	go.uber.org/zap v1.23.0
 )
