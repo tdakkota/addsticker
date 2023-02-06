@@ -6,7 +6,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.2.0
 	github.com/go-faster/errors v0.6.1
 	github.com/gotd/td v0.75.0
-	github.com/joho/godotenv v1.4.0
+	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.8.1
 	go.uber.org/multierr v1.9.0
 	go.uber.org/zap v1.24.0
