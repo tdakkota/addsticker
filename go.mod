@@ -8,7 +8,7 @@ require (
 	github.com/gotd/td v0.77.0
 	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.8.2
-	go.uber.org/multierr v1.9.0
+	go.uber.org/multierr v1.10.0
 	go.uber.org/zap v1.24.0
 )
 
