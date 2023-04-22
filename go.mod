@@ -3,7 +3,7 @@ module github.com/tdakkota/addsticker
 go 1.18
 
 require (
-	github.com/cenkalti/backoff/v4 v4.2.0
+	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/go-faster/errors v0.6.1
 	github.com/gotd/td v0.79.0
 	github.com/joho/godotenv v1.5.1
